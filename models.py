@@ -17,7 +17,7 @@ class userModel(database.Base):
     phone = _sqlalchemy.Column(_sqlalchemy.String)
     password_hash = _sqlalchemy.Column(_sqlalchemy.String)
     created_At = _sqlalchemy.Column(_sqlalchemy.DateTime, default=datetime.datetime.utcnow())
-    posts = _orm.relationship("postModel", back_populates="owner")
+    posts = _orm.relationship("postModel", back_populates="user")
 
     def password_verification(self,password:str):
         return hash.bcrypt.verify(password,self.password_hash)
