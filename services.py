@@ -4,9 +4,11 @@ import models
 import sqlalchemy.orm as orm
 import schemas
 import fastapi
+import email_validator
 import passlib.hash as hash
 import jwt
 import fastapi.security as security
+from typing import List
 
 public_key = "AHMADISTHEBEST2000AHMADESMAAILEINIEH"
 outhToSchema = security.OAuth2PasswordBearer("/api/login")
@@ -74,7 +76,7 @@ async def current_user(db:orm.Session= fastapi.Depends(get_db),token:str=fastapi
     
     return schemas.UserResponse.from_orm(db_user)
 
-async def create_post(user:schemas.UserResponse, post:schemas.PostRequest, db=orm.Session):
+async def create_post(user:schemas.UserResponse, post:schemas.PostsRequest, db=orm.Session):
     postObject = models.postModel(
         **post.dict(),
         user_id=user.id
@@ -83,3 +85,34 @@ async def create_post(user:schemas.UserResponse, post:schemas.PostRequest, db=or
     db.commit()
     db.refresh(postObject)
     return schemas.PostsResponse.from_orm(postObject)
+
+async def get_posts_by_user(user:schemas.UserResponse, db=orm.Session):
+    posts = db.query(models.postModel).filter_by(user_id=user.id)
+    return list(map(schemas.PostsResponse.from_orm, posts))
+
+async def get_posts_by_all(db=orm.Session):
+    posts = db.query(models.postModel)
+    return list(map(schemas.PostsResponse.from_orm, posts))
+
+
+async def get_post_by_id(post_id:int, db=orm.Session):
+    post = db.query(models.postModel).get(post_id)
+    if not post:
+        raise fastapi.HTTPException(status_code=404, detail="Post Not Found")
+    #return schemas.PostsResponse.from_orm(post)
+    return post
+
+async def delete_post(post:models.postModel, db=orm.Session):
+    db.delete(post)
+    db.commit()
+
+async def update_post(post:schemas.PostsRequest,db_post:models.postModel,db=orm.session):
+
+    db_post.title = post.title
+    db_post.content = post.content
+    db_post.image = post.image
+
+    db.commit()
+    db.refresh(db_post)
+
+    return schemas.PostsResponse.from_orm(db_post)
