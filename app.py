@@ -4,9 +4,17 @@ import sqlalchemy.orm as orm
 import schemas
 import services
 from typing import List
-import models
+from fastapi.middleware.cors import CORSMiddleware 
 
 app = fastapi.FastAPI()
+# SECOND PARAMETER LIST OF ACCEPTED URL
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], #["url","url2"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/api/regeister")
 async def regeister(user:schemas.UserRequset, db:orm.Session = fastapi.Depends(services.get_db)):
